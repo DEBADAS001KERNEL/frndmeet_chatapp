@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
-import random
 import os
+from flask import Flask, render_template, request  # Import request
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -22,7 +22,6 @@ def index():
 # Handle incoming messages
 @socketio.on('message')
 def handle_message(data):
-    print(f"Message received: {data}")  # Debugging log
     emit('new_message', data, broadcast=True, include_self=False)
 
 # Handle user connections
@@ -37,11 +36,8 @@ def handle_connect():
 def handle_disconnect():
     global connected_users
     connected_users.remove(request.sid)  # Remove user from the set
-    if len(connected_users) == 0:
-        print("All users left. Clearing messages.")
-        # Logic to clear messages if implemented
     print(f"User disconnected: {request.sid}")
 
 # Run the Flask app
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000)
