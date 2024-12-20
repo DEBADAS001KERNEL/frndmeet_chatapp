@@ -1,43 +1,30 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
-import os
-from flask import Flask, render_template, request  # Import request
+from flask import Flask, render_template, request, jsonify
+import random
+import string
 
-# Initialize Flask app
 app = Flask(__name__)
 
-# Use environment variable for SECRET_KEY for security
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
+# List to store messages
+messages = []
 
-# Initialize SocketIO with eventlet async mode
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
-
-# Track connected users
-connected_users = set()
+# Function to generate a random user ID
+def generate_user_id():
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Handle incoming messages
-@socketio.on('message')
-def handle_message(data):
-    emit('new_message', data, broadcast=True, include_self=False)
+@app.route('/send_message', methods=['POST'])
+def send_message():
+    message = request.form['message']
+    user_id = generate_user_id()  # Generate a random user ID for anonymity
+    messages.append({'user_id': user_id, 'message': message})
+    return jsonify({"status": "Message sent"}), 200
 
-# Handle user connections
-@socketio.on('connect')
-def handle_connect():
-    global connected_users
-    connected_users.add(request.sid)  # Use request.sid to identify the user session
-    print(f"User connected: {request.sid}")
+@app.route('/get_messages', methods=['GET'])
+def get_messages():
+    return jsonify(messages)
 
-# Handle user disconnections
-@socketio.on('disconnect')
-def handle_disconnect():
-    global connected_users
-    connected_users.remove(request.sid)  # Remove user from the set
-    print(f"User disconnected: {request.sid}")
-
-# Run the Flask app
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(debug=True)
