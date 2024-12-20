@@ -1,10 +1,16 @@
 from flask import Flask, render_template, request  # Import 'request'
 from flask_socketio import SocketIO, emit
 import random
+import os
 
+# Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Use environment variable for SECRET_KEY for security
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_secret_key')
+
+# Initialize SocketIO with eventlet async mode
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # Track connected users
 connected_users = set()
@@ -35,5 +41,6 @@ def handle_disconnect():
         # Logic to clear messages if implemented
     print(f"User disconnected: {request.sid}")
 
+# Run the Flask app
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=False)
