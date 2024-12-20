@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Chat</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        .message .user-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .message .message-text {
+            background-color: #333;
+            border-radius: 10px;
+            padding: 10px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        #input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #1e1e1e;
+        }
+        #message {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            font-size: 16px;
+        }
+        #send {
+            padding: 10px 20px;
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #send:hover {
+            background-color: #d81b60;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-box"></div>
+    <div id="input-container">
+        <input id="message" type="text" placeholder="Type your message">
+        <button id="send">Send</button>
+    </div>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const chatBox = document.getElementById('chat-box');
+        const messageInput = document.getElementById('message');
+        const sendButton = document.getElementById('send');
+
+        // Generate a random user color and ID
+        const userColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+        const userId = Math.random().toString(36).substring(2, 10);
+
+        // Add a message to the chat
+        function addMessage(userId, message, color) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            const userCircle = document.createElement('div');
+            userCircle.classList.add('user-circle');
+            userCircle.style.backgroundColor = color;
+            userCircle.innerText = userId[0].toUpperCase(); // First letter as user logo
+            const messageText = document.createElement('div');
+            messageText.classList.add('message-text');
+            messageText.innerText = message;
+            messageDiv.appendChild(userCircle);
+            messageDiv.appendChild(messageText);
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Send a message
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            if (message) {
+                addMessage(userId, message, userColor); // Show the sender's message locally
+                socket.emit('message', { user_id: userId, message, color: userColor }); // Send to server
+                messageInput.value = '';
+            }
+        });
+
+        // Receive a message
+        socket.on('new_message', (data) => {
+            addMessage(data.user_id, data.message, data.color);
+        });
+
+        // Allow pressing "Enter" to send the message
+        messageInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+    </script>
+</body>
+</html>
