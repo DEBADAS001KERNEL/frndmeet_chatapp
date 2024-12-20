@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, jsonify
 import random
 import string
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app)
 
 # List to store messages
 messages = []

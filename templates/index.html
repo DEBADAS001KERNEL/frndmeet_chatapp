@@ -61,7 +61,7 @@
                 chatBox.innerHTML = ''; // Clear previous messages
                 messages.forEach(function(msg) {
                     var msgElement = document.createElement("p");
-                    msgElement.innerText = "User: " + msg.message;
+                    msgElement.innerText = "User " + msg.user_id + ": " + msg.message;
                     chatBox.appendChild(msgElement);
                 });
             });
